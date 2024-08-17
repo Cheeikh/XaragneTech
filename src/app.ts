@@ -1,7 +1,7 @@
 import express, { Application } from 'express';
 import prisma from './config/prisma.js';  // Import de l'instance partagée
 import authRoutes from './routes/authRoutes.js';
-import ServiceRoutes from './routes/servicesRoutes';
+import ServiceRoutes from './routes/servicesRoutes.js';
 
 const app: Application = express();
 
