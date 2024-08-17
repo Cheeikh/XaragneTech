@@ -1,0 +1,359 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum StateProfile {
+  NORMAL
+  SIGNALER
+}
+
+enum Sexe {
+  HOMME
+  FEMME
+}
+
+enum Role {
+  TAILLEUR
+  CLIENT
+  VENDEUR // Ajout du rôle de Vendeur
+}
+
+enum SignalementMotif {
+  CONTENU_INAPPROPRIE
+  HARCELEMENT
+  SPAM
+  FAUX_PROFIL
+  AUTRE
+}
+
+enum MesureType {
+  HOMME
+  FEMME
+  ENFANT
+}
+
+enum CommandeStatus {
+  EN_ATTENTE
+  EN_COURS
+  TERMINER
+}
+
+enum ServiceType {
+  MODELE_PRET
+  COMMANDE_SUR_MESURE
+  REPARATION
+  VENTE_TISSUS
+  VENTE_ACCESSOIRES
+}
+
+enum FileType {
+  IMAGE
+  VIDEO
+}
+
+model Utilisateur {
+  id            Int           @id @default(autoincrement())
+  nom           String
+  prenom        String
+  login         String        @unique
+  motDePasse    String
+  adresse       String
+  email         String        @unique
+  telephone     String
+  photo         String
+  stateProfiles StateProfile  @default(NORMAL)
+  sexe          Sexe
+  role          Role
+  signalements  Signalement[] @relation("UtilisateurSignalé")
+  mesMesures    Mesure[]
+  likes         Post[]        @relation("PostLikes")
+  dislikes      Post[]        @relation("PostDislikes")
+  commentaires  Commentaire[] @relation("UtilisateurCommentaires")
+  reactions     Reaction[]    @relation("ReactionUtilisateur")
+  responses     Response[]    @relation("ResponseUtilisateur")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client   Client?
+  tailleur Tailleur?
+  vendeur  Vendeur?
+  Message  Message[]
+
+  @@map("utilisateurs")
+}
+
+model Client {
+  utilisateurId Int         @unique
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
+
+  following  ClientTailleurFollowing[]
+  commandes  Commande[]                @relation("CommandeClient")
+  Discussion Discussion[]
+
+  @@map("clients")
+}
+
+model Tailleur {
+  utilisateurId Int         @unique
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
+
+  solde Float? @default(0)
+
+  services  Service[]  @relation("TailleurServices")
+  commandes Commande[] @relation("CommandeTailleur")
+  posts     Post[]     @relation("TailleurPosts")
+  stories   Story[]    @relation(name: "StoryTailleur")
+
+  followers       TailleurFollowing[]       @relation("Followers")
+  following       TailleurFollowing[]       @relation("Following")
+  clientFollowers ClientTailleurFollowing[] @relation("ClientFollowers")
+  Discussion      Discussion[]
+
+  @@map("tailleurs")
+}
+
+model Vendeur {
+  utilisateurId Int         @unique
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
+
+  solde Float? @default(0)
+
+  services  Service[]  @relation("VendeurServices")
+  commandes Commande[] @relation("CommandeVendeur")
+
+  @@map("vendeurs")
+}
+
+model TailleurFollowing {
+  id          Int @id @default(autoincrement())
+  followerId  Int
+  followingId Int
+
+  follower  Tailleur @relation("Following", fields: [followerId], references: [utilisateurId])
+  following Tailleur @relation("Followers", fields: [followingId], references: [utilisateurId])
+
+  createdAt DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@map("tailleur_followings")
+}
+
+model ClientTailleurFollowing {
+  id         Int @id @default(autoincrement())
+  clientId   Int
+  tailleurId Int
+
+  client   Client   @relation(fields: [clientId], references: [utilisateurId])
+  tailleur Tailleur @relation("ClientFollowers", fields: [tailleurId], references: [utilisateurId])
+
+  createdAt DateTime @default(now())
+
+  @@unique([clientId, tailleurId])
+  @@map("client_tailleur_followings")
+}
+
+model Signalement {
+  id                   Int              @id @default(autoincrement())
+  utilisateurSignaleId Int
+  utilisateurSignale   Utilisateur      @relation("UtilisateurSignalé", fields: [utilisateurSignaleId], references: [id])
+  motif                SignalementMotif
+  description          String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  @@map("signalements")
+}
+
+model Mesure {
+  id               Int         @id @default(autoincrement())
+  nom              String
+  type             MesureType
+  poitrine         Float?
+  taille           Float?
+  hanches          Float?
+  hauteur          Float?
+  cou              Float?
+  epaules          Float?
+  longueurManche   Float?
+  longueurPantalon Float?
+  tourCeinture     Float?
+  sousPoitrine     Float?
+  tourDeBuste      Float?
+  longueurRobe     Float?
+  longueurBras     Float?
+  longueurJambe    Float?
+  utilisateurId    Int
+  utilisateur      Utilisateur @relation(fields: [utilisateurId], references: [id], map: "mesure_utilisateur_fk")
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@map("mesures")
+}
+
+model Service {
+  id          Int            @id @default(autoincrement())
+  type        ServiceType
+  nom         String
+  description String
+  prixBase    Float
+  stock       Int            @default(0)
+  tailleurId  Int?
+  vendeurId   Int?
+  tailleur    Tailleur?      @relation("TailleurServices", fields: [tailleurId], references: [utilisateurId])
+  vendeur     Vendeur?       @relation("VendeurServices", fields: [vendeurId], references: [utilisateurId])
+  images      ServiceImage[]
+  commandes   Commande[]     @relation("ServiceToCommande")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("services")
+}
+
+model Commande {
+  id         Int            @id @default(autoincrement())
+  clientId   Int
+  client     Client         @relation("CommandeClient", fields: [clientId], references: [utilisateurId], map: "commande_client_fk")
+  tailleurId Int?
+  vendeurId  Int?
+  tailleur   Tailleur?      @relation("CommandeTailleur", fields: [tailleurId], references: [utilisateurId], map: "commande_tailleur_fk")
+  vendeur    Vendeur?       @relation("CommandeVendeur", fields: [vendeurId], references: [utilisateurId], map: "commande_vendeur_fk")
+  serviceId  Int
+  service    Service        @relation("ServiceToCommande", fields: [serviceId], references: [id], map: "commande_service_fk")
+  quantite   Int
+  total      Float
+  statut     CommandeStatus
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@map("commandes")
+}
+
+model ServiceImage {
+  id        Int     @id @default(autoincrement())
+  url       String
+  serviceId Int
+  service   Service @relation(fields: [serviceId], references: [id], map: "serviceimage_service_fk")
+
+  @@map("service_images")
+}
+
+model Post {
+  id              Int           @id @default(autoincrement())
+  titre           String?
+  description     String
+  tailleurId      Int
+  tailleur        Tailleur      @relation("TailleurPosts", fields: [tailleurId], references: [utilisateurId], map: "post_tailleur_fk")
+  fichiers        File[]        @relation("PostFiles")
+  vues            Int           @default(0)
+  partages        Int           @default(0)
+  likes           Utilisateur[] @relation("PostLikes")
+  dislikes        Utilisateur[] @relation("PostDislikes")
+  commentaires    Commentaire[] @relation("PostCommentaires")
+  telechargements Int           @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("posts")
+}
+
+model Story {
+  id          Int        @id @default(autoincrement())
+  tailleurId  Int
+  tailleur    Tailleur   @relation(name: "StoryTailleur", fields: [tailleurId], references: [utilisateurId], map: "story_tailleur_fk")
+  titre       String?
+  description String?
+  fichier     File?      @relation("StoryFile")
+  vues        Int        @default(0)
+  expiration  DateTime
+  reactions   Reaction[] @relation("StoryReactions")
+  responses   Response[] @relation("StoryResponses")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("stories")
+}
+
+model Commentaire {
+  id            Int         @id @default(autoincrement())
+  contenu       String
+  utilisateurId Int
+  utilisateur   Utilisateur @relation("UtilisateurCommentaires", fields: [utilisateurId], references: [id], map: "commentaire_utilisateur_fk")
+  postId        Int
+  post          Post        @relation("PostCommentaires", fields: [postId], references: [id], map: "commentaire_post_fk")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("commentaires")
+}
+
+model File {
+  id      Int      @id @default(autoincrement())
+  type    FileType
+  url     String
+  storyId Int?     @unique
+  story   Story?   @relation("StoryFile", fields: [storyId], references: [id], onDelete: Cascade)
+  postId  Int?
+  post    Post?    @relation("PostFiles", fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("files")
+}
+
+model Reaction {
+  id            Int         @id @default(autoincrement())
+  type          String
+  utilisateurId Int
+  utilisateur   Utilisateur @relation(name: "ReactionUtilisateur", fields: [utilisateurId], references: [id], map: "reaction_utilisateur_fk")
+  storyId       Int?
+  story         Story?      @relation("StoryReactions", fields: [storyId], references: [id])
+  createdAt     DateTime    @default(now())
+
+  @@map("reactions")
+}
+
+model Response {
+  id            Int         @id @default(autoincrement())
+  contenu       String
+  utilisateurId Int
+  utilisateur   Utilisateur @relation(name: "ResponseUtilisateur", fields: [utilisateurId], references: [id], map: "response_utilisateur_fk")
+  storyId       Int?
+  story         Story?      @relation("StoryResponses", fields: [storyId], references: [id])
+  createdAt     DateTime    @default(now())
+
+  @@map("responses")
+}
+
+model Discussion {
+  id         Int       @id @default(autoincrement())
+  clientId   Int
+  client     Client    @relation(fields: [clientId], references: [utilisateurId])
+  tailleurId Int
+  tailleur   Tailleur  @relation(fields: [tailleurId], references: [utilisateurId])
+  messages   Message[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([clientId, tailleurId])
+  @@map("discussions")
+}
+
+model Message {
+  id           Int         @id @default(autoincrement())
+  contenu      String
+  discussionId Int
+  discussion   Discussion  @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  auteurId     Int
+  auteur       Utilisateur @relation(fields: [auteurId], references: [id])
+  createdAt    DateTime    @default(now())
+
+  @@map("messages")
+}
