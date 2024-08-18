@@ -332,28 +332,51 @@ model Response {
   @@map("responses")
 }
 
+enum DiscussionStatus {
+  ACTIVE
+  ARCHIVED
+  CLOSED
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  AUDIO
+  VIDEO
+  FILE
+}
+
 model Discussion {
-  id         Int       @id @default(autoincrement())
-  clientId   Int
-  client     Client    @relation(fields: [clientId], references: [utilisateurId])
-  tailleurId Int
-  tailleur   Tailleur  @relation(fields: [tailleurId], references: [utilisateurId])
-  messages   Message[]
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id            Int             @id @default(autoincrement())
+  clientId      Int
+  client        Client          @relation(fields: [clientId], references: [utilisateurId])
+  tailleurId    Int
+  tailleur      Tailleur        @relation(fields: [tailleurId], references: [utilisateurId])
+  messages      Message[]
+  status        DiscussionStatus @default(ACTIVE)
+  lastMessageAt DateTime        @default(now())
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  isReadByClient Boolean        @default(true)
+  isReadByTailleur Boolean      @default(true)
 
   @@unique([clientId, tailleurId])
+  @@index([lastMessageAt])
   @@map("discussions")
 }
 
 model Message {
   id           Int         @id @default(autoincrement())
+  type         MessageType @default(TEXT)
   contenu      String
   discussionId Int
   discussion   Discussion  @relation(fields: [discussionId], references: [id], onDelete: Cascade)
   auteurId     Int
   auteur       Utilisateur @relation(fields: [auteurId], references: [id])
+  isRead       Boolean     @default(false)
   createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
+  @@index([discussionId, createdAt])
   @@map("messages")
 }
