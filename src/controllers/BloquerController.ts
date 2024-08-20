@@ -17,6 +17,13 @@ class BloquerController {
                 const userId = (req as any).user.id;
                 const { targetUserId } = req.body;
 
+                // Vérifier si l'utilisateur a déjà bloqué cette personne
+                const isAlreadyBlocked = await this.bloquerService.isUserBlocked(userId, targetUserId);
+                if (isAlreadyBlocked) {
+                    sendErrorResponse(res, 400, 'Cet utilisateur a déjà été bloqué.');
+                    return;
+                }
+
                 const blockedUser = await this.bloquerService.blockUser(userId, targetUserId);
                 sendResponse(res, 201, { message: 'Utilisateur bloqué avec succès', blockedUser });
             } catch (err: any) {
@@ -25,7 +32,6 @@ class BloquerController {
             }
         }
     ];
-
     unblockUser = [
         verify,
         async (req: Request, res: Response): Promise<void> => {
@@ -63,15 +69,21 @@ class BloquerController {
             try {
                 const userId = (req as any).user.id;
                 const { targetUserId } = req.params;
-
+    
                 const isBlocked = await this.bloquerService.isUserBlocked(userId, parseInt(targetUserId));
-                sendResponse(res, 200, { isBlocked });
+    
+                if (isBlocked) {
+                    sendResponse(res, 200, { message: 'L\'utilisateur est actuellement bloqué.' });
+                } else {
+                    sendResponse(res, 200, { message: 'L\'utilisateur n\'est pas bloqué.' });
+                }
             } catch (err: any) {
                 console.error('Erreur lors de la vérification du statut de blocage:', err);
                 sendErrorResponse(res, 500, 'Erreur serveur interne');
             }
         }
     ];
+    
 }
 
 // Création de l'instance du service
