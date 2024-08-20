@@ -1,9 +1,7 @@
 import { Router } from 'express';
 import FollowController from '../controllers/FollowController.js';
 import { verify } from '../middlewares/AuthMiddleware.js';
-import multer from 'multer';
 
-const upload = multer(); // Initialize multer for handling files
 
 const router = Router();
 

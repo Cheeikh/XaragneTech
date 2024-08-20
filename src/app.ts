@@ -6,6 +6,7 @@ import followRoutes from './routes/followRoutes.js';
 import signalementRoutes from './routes/signalementRoutes.js';
 import bloquerRoutes from './routes/bloquerRoutes.js'
 import evaluationRoutes from './routes/evaluationRoutes.js'
+import DiscussionsRoutes from './routes/discussionsRoutes.js';
 
 const app: Application = express();
 
@@ -15,10 +16,12 @@ app.use(express.json());
 // Définition des routes publiques pour l'authentification
 app.use('/api/auth', authRoutes);
 app.use('/api/services', ServiceRoutes);
-app.use('/api', followRoutes);
+app.use('/api/follow', followRoutes);
 app.use ("/api/signalement", signalementRoutes);
-app.use('/api', bloquerRoutes);
+app.use('/api/bloquer', bloquerRoutes);
 app.use('/api/evaluations', evaluationRoutes)
+app.use ("/api/signalement", signalementRoutes)
+app.use ("/api/discussions", DiscussionsRoutes)
 
 // Middleware pour gérer les erreurs 404
 app.use((req, res) => {
