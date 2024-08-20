@@ -79,6 +79,7 @@ model Utilisateur {
   tailleur      Tailleur?
   vendeur       Vendeur?
   Message       Message[]
+  evaluation    Evaluation? 
 
   // Relations avec le modèle Bloquer
   bloquerCommeBloqueur Bloquer[] @relation("UtilisateurBloqueur")
@@ -89,6 +90,20 @@ model Utilisateur {
 
   @@map("utilisateurs")
 }
+
+model Evaluation {
+  id              Int        @id @default(autoincrement())
+  utilisateurId   Int @unique
+  utilisateur     Utilisateur @relation(fields: [utilisateurId], references: [id])
+  note            Int
+  commentaire     String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@map("evaluations")
+}
+
+
 
 
 model Client {
