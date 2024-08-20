@@ -126,45 +126,50 @@ export class DiscussionsService {
         }
     }
 
-    public async markMessagesAsRead(
-        discussionId: number, 
-        userId: number
-    ): Promise<void> {
+    public async markMessagesAsRead(discussionId: number, userId: number): Promise<void> {
         try {
             const discussion = await this.prisma.discussion.findUnique({
                 where: { id: discussionId },
             });
-
+    
             if (!discussion) {
                 throw new Error('Discussion not found');
             }
-
+    
             const isClient = discussion.clientId === userId;
             const isTailleur = discussion.tailleurId === userId;
-
+    
             if (!isClient && !isTailleur) {
-                throw new Error('Unauthorized user');
+                throw new Error('User not authorized to mark messages as read in this discussion');
             }
-
-            await this.prisma.$transaction([
-                this.prisma.message.updateMany({
-                    where: {
-                        discussionId,
-                        auteurId: { not: userId },
-                        isRead: false,
+    
+            await this.prisma.discussion.update({
+                where: { id: discussionId },
+                data: {
+                    isReadByClient: isClient ? true : discussion.isReadByClient,
+                    isReadByTailleur: isTailleur ? true : discussion.isReadByTailleur,
+                },
+            });
+    
+            // Optionally, you could also update the message status directly
+            await this.prisma.message.updateMany({
+                where: {
+                    discussionId,
+                    auteurId: {
+                        not: userId, // Mark messages as read for messages not authored by the current user
                     },
-                    data: { isRead: true },
-                }),
-                this.prisma.discussion.update({
-                    where: { id: discussionId },
-                    data: isClient ? { isReadByClient: true } : { isReadByTailleur: true },
-                }),
-            ]);
+                },
+                data: {
+                    isRead: true,
+                },
+            });
+    
         } catch (error) {
             console.error('Error marking messages as read:', error);
             throw new Error('Error marking messages as read');
         }
     }
+    
 
     public async getUnreadMessagesCount(
         userId: number
