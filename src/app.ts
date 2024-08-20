@@ -4,6 +4,7 @@ import authRoutes from './routes/authRoutes.js';
 import ServiceRoutes from './routes/servicesRoutes.js';
 import followRoutes from './routes/followRoutes.js';
 import signalementRoutes from './routes/signalementRoutes.js';
+import bloquerRoutes from './routes/bloquerRoutes.js'
 
 const app: Application = express();
 
@@ -14,7 +15,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/services', ServiceRoutes);
 app.use('/api', followRoutes);
-app.use ("/api/signalement", signalementRoutes)
+app.use ("/api/signalement", signalementRoutes);
+app.use('/api', bloquerRoutes)
 
 // Middleware pour gérer les erreurs 404
 app.use((req, res) => {

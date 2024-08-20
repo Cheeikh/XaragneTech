@@ -55,7 +55,6 @@ enum FileType {
   IMAGE
   VIDEO
 }
-
 model Utilisateur {
   id            Int           @id @default(autoincrement())
   nom           String
@@ -76,17 +75,21 @@ model Utilisateur {
   commentaires  Commentaire[] @relation("UtilisateurCommentaires")
   reactions     Reaction[]    @relation("ReactionUtilisateur")
   responses     Response[]    @relation("ResponseUtilisateur")
+  client        Client?
+  tailleur      Tailleur?
+  vendeur       Vendeur?
+  Message       Message[]
+
+  // Relations avec le modèle Bloquer
+  bloquerCommeBloqueur Bloquer[] @relation("UtilisateurBloqueur")
+  bloquerCommeBloque   Bloquer[] @relation("UtilisateurBloqué")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  client   Client?
-  tailleur Tailleur?
-  vendeur  Vendeur?
-  Message  Message[]
-
   @@map("utilisateurs")
 }
+
 
 model Client {
   utilisateurId Int         @unique
@@ -195,6 +198,19 @@ model Mesure {
 
   @@map("mesures")
 }
+model Bloquer {
+  id               Int         @id @default(autoincrement())
+  bloqueurId       Int
+  bloqueId         Int
+  bloqueur         Utilisateur @relation("UtilisateurBloqueur", fields: [bloqueurId], references: [id])
+  bloque           Utilisateur @relation("UtilisateurBloqué", fields: [bloqueId], references: [id])
+  dateBloquage     DateTime    @default(now())
+
+  @@unique([bloqueurId, bloqueId])
+  @@map("bloquer")
+}
+
+
 
 model Service {
   id          Int            @id @default(autoincrement())
