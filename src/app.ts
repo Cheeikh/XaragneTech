@@ -4,6 +4,7 @@ import authRoutes from './routes/authRoutes.js';
 import ServiceRoutes from './routes/servicesRoutes.js';
 import followRoutes from './routes/followRoutes.js';
 import signalementRoutes from './routes/signalementRoutes.js';
+import commandeRoutes from './routes/commandeRoutes.js';
 
 const app: Application = express();
 
@@ -15,6 +16,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/services', ServiceRoutes);
 app.use('/api', followRoutes);
 app.use ("/api/signalement", signalementRoutes)
+app.use ("/api/commande", commandeRoutes)
 
 // Middleware pour gérer les erreurs 404
 app.use((req, res) => {
