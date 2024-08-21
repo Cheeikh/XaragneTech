@@ -4,6 +4,7 @@ import authRoutes from './routes/authRoutes.js';
 import ServiceRoutes from './routes/servicesRoutes.js';
 import followRoutes from './routes/followRoutes.js';
 import signalementRoutes from './routes/signalementRoutes.js';
+import commandeRoutes from './routes/commandeRoutes.js';
 import bloquerRoutes from './routes/bloquerRoutes.js'
 import evaluationRoutes from './routes/evaluationRoutes.js'
 import DiscussionsRoutes from './routes/discussionsRoutes.js';
@@ -21,6 +22,7 @@ app.use ("/api/signalement", signalementRoutes);
 app.use('/api/bloquer', bloquerRoutes);
 app.use('/api/evaluations', evaluationRoutes)
 app.use ("/api/signalement", signalementRoutes)
+app.use ("/api/commande", commandeRoutes)
 app.use ("/api/discussions", DiscussionsRoutes)
 
 // Middleware pour gérer les erreurs 404
