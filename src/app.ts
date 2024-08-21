@@ -2,7 +2,8 @@ import express, { Application } from 'express';
 import prisma from './config/prisma.js';  // Import de l'instance partagée
 import authRoutes from './routes/authRoutes.js';
 import ServiceRoutes from './routes/servicesRoutes.js';
-import postRoutes from "./routes/postRoutes.js";
+import postRoutes from "./routes/postRoutes.js"
+import PostInteractionRoutes from "./routes/postInteractionRoutes.js";
 
 const app: Application = express();
 
@@ -14,6 +15,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/services', ServiceRoutes);
 app.use('/api/services', ServiceRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/PostInteraction', PostInteractionRoutes)
 
 // Middleware pour gérer les erreurs 404
 app.use((req, res) => {
