@@ -20,7 +20,7 @@ enum Sexe {
 enum Role {
   TAILLEUR
   CLIENT
-  VENDEUR // Ajout du rôle de Vendeur
+  VENDEUR
 }
 
 enum SignalementMotif {

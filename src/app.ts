@@ -1,7 +1,8 @@
 import express, { Application } from 'express';
 import prisma from './config/prisma.js';  // Import de l'instance partagée
 import authRoutes from './routes/authRoutes.js';
-import ServiceRoutes from './routes/servicesRoutes';
+import ServiceRoutes from './routes/servicesRoutes.js';
+import postRoutes from "./routes/postRoutes.js";
 
 const app: Application = express();
 
@@ -11,6 +12,8 @@ app.use(express.json());
 // Définition des routes publiques pour l'authentification
 app.use('/api/auth', authRoutes);
 app.use('/api/services', ServiceRoutes);
+app.use('/api/services', ServiceRoutes);
+app.use('/api/posts', postRoutes);
 
 // Middleware pour gérer les erreurs 404
 app.use((req, res) => {

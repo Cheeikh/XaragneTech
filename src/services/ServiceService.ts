@@ -1,3 +1,4 @@
+// @ts-ignore
 import { PrismaClient, Service, ServiceImage } from '@prisma/client';
 import cloudinary from '../config/cloudinary.js';
 import prisma from '../config/prisma.js';

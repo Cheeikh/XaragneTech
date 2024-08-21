@@ -1,4 +1,5 @@
 // src/services/AuthService.ts
+// @ts-ignore
 import { PrismaClient, Utilisateur } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import cloudinary from '../config/cloudinary.js';
