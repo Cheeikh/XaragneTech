@@ -4,7 +4,7 @@ import authRoutes from './routes/authRoutes.js';
 import ServiceRoutes from './routes/servicesRoutes.js';
 import postRoutes from "./routes/postRoutes.js"
 import PostInteractionRoutes from "./routes/postInteractionRoutes.js";
-
+import CommentaireRoutes  from "./routes/CommentaireRoutes.js";
 const app: Application = express();
 
 // Middleware pour parser les requêtes JSON
@@ -15,7 +15,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/services', ServiceRoutes);
 app.use('/api/services', ServiceRoutes);
 app.use('/api/posts', postRoutes);
-app.use('/api/PostInteraction', PostInteractionRoutes)
+app.use('/api/PostInteraction', PostInteractionRoutes);
+app.use('/api/commentaire',CommentaireRoutes)
 
 // Middleware pour gérer les erreurs 404
 app.use((req, res) => {
