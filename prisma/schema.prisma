@@ -55,7 +55,6 @@ enum FileType {
   IMAGE
   VIDEO
 }
-
 model Utilisateur {
   id            Int           @id @default(autoincrement())
   nom           String
@@ -76,17 +75,36 @@ model Utilisateur {
   commentaires  Commentaire[] @relation("UtilisateurCommentaires")
   reactions     Reaction[]    @relation("ReactionUtilisateur")
   responses     Response[]    @relation("ResponseUtilisateur")
+  client        Client?
+  tailleur      Tailleur?
+  vendeur       Vendeur?
+  Message       Message[]
+  evaluation    Evaluation? 
+
+  // Relations avec le modèle Bloquer
+  bloquerCommeBloqueur Bloquer[] @relation("UtilisateurBloqueur")
+  bloquerCommeBloque   Bloquer[] @relation("UtilisateurBloqué")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  client   Client?
-  tailleur Tailleur?
-  vendeur  Vendeur?
-  Message  Message[]
-
   @@map("utilisateurs")
 }
+
+model Evaluation {
+  id              Int        @id @default(autoincrement())
+  utilisateurId   Int @unique
+  utilisateur     Utilisateur @relation(fields: [utilisateurId], references: [id])
+  note            Int
+  commentaire     String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@map("evaluations")
+}
+
+
+
 
 model Client {
   utilisateurId Int         @unique
@@ -195,6 +213,19 @@ model Mesure {
 
   @@map("mesures")
 }
+model Bloquer {
+  id               Int         @id @default(autoincrement())
+  bloqueurId       Int
+  bloqueId         Int
+  bloqueur         Utilisateur @relation("UtilisateurBloqueur", fields: [bloqueurId], references: [id])
+  bloque           Utilisateur @relation("UtilisateurBloqué", fields: [bloqueId], references: [id])
+  dateBloquage     DateTime    @default(now())
+
+  @@unique([bloqueurId, bloqueId])
+  @@map("bloquer")
+}
+
+
 
 model Service {
   id          Int            @id @default(autoincrement())
@@ -332,28 +363,51 @@ model Response {
   @@map("responses")
 }
 
+enum DiscussionStatus {
+  ACTIVE
+  ARCHIVED
+  CLOSED
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  AUDIO
+  VIDEO
+  FILE
+}
+
 model Discussion {
-  id         Int       @id @default(autoincrement())
-  clientId   Int
-  client     Client    @relation(fields: [clientId], references: [utilisateurId])
-  tailleurId Int
-  tailleur   Tailleur  @relation(fields: [tailleurId], references: [utilisateurId])
-  messages   Message[]
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id            Int             @id @default(autoincrement())
+  clientId      Int
+  client        Client          @relation(fields: [clientId], references: [utilisateurId])
+  tailleurId    Int
+  tailleur      Tailleur        @relation(fields: [tailleurId], references: [utilisateurId])
+  messages      Message[]
+  status        DiscussionStatus @default(ACTIVE)
+  lastMessageAt DateTime        @default(now())
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  isReadByClient Boolean        @default(true)
+  isReadByTailleur Boolean      @default(true)
 
   @@unique([clientId, tailleurId])
+  @@index([lastMessageAt])
   @@map("discussions")
 }
 
 model Message {
   id           Int         @id @default(autoincrement())
+  type         MessageType @default(TEXT)
   contenu      String
   discussionId Int
   discussion   Discussion  @relation(fields: [discussionId], references: [id], onDelete: Cascade)
   auteurId     Int
   auteur       Utilisateur @relation(fields: [auteurId], references: [id])
+  isRead       Boolean     @default(false)
   createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
+  @@index([discussionId, createdAt])
   @@map("messages")
 }
